@@ -2,13 +2,15 @@
 \usepackage{graphicx}
 \usepackage{listings}
 
-\author{}
-\institute{}
+\author{Richard Beare}
+\institute{Department of Medicine, Monash University, Australia}
 
-\title{}
-\abstract{}
-\keyword{}
-\year{}
+\title{Optimization of connected component labelling}
+
+\abstract{The report details some modifications made to the ITK {\em ConnectedComponentImageFilter} in an attempt to improve performance. Some interesting observations were made during this process. A new filter using a different algorithm to perform the same function is also described.}
+
+\keyword{connected component labelling, run length encoding}
+\year{2005}
 
 \leftmark{}
 \rightmark{}
@@ -17,5 +19,156 @@
 \lstset{language=c++}
 \maketitle
 % \tableofcontents
+\section{Introduction}
+This work started out as my tutorial for writing ITK filters and
+learning about iterators. 
+
+The ConnectedComponentImageFilter performs a task known as {\em
+labelling} in which each distinct object is given a unique
+identifier\footnote{In practice this means that each pixel belonging
+to a given object is given the same value} while the background is set
+to zero. An object, or connected component, is usually defined as a
+set of {\em connected}, non zero pixels, where two pixels being {\em
+connected} means that it is possible to construct a path including
+only non zero pixels between them. Steps along the path are defined by
+a neighborhood function, as illustrated in Figure \ref{}\footnote{It
+is feasible to have neighborhoods that include more than immediately
+adjacent pixels, but this isn't done very often in practice}.
+
+The filter has since been modified to include a mask image. The
+modified filters do not include this facility.
+
+\begin{figure}[htbp]
+\begin{center}
+\label{fig:neigh}
+\caption{4 and 8 connected neighborhoods used in 2D labelling.}
+\end{center}
+\end{figure}
+
+\section{Important notes}
+Whenever optimizing itk filters there is one important check -- make
+sure that you build the library in release mode. This is often
+mentioned on the mailing lists, but is easy to forget. Release mode
+isn't the default build option and makes a big difference in
+performance when compared to the less optimized modes.
+
+\section{Current labelling algorithm}
+The existing labelling algorithms is:
+\begin{itemize}
+\item Find all non zero input pixels and set the corresponding output 
+pixel to the maximum label value.
+\item Iterate over the output image. If the pixel is non zero, visit 
+the neighbors of the pixel that have a lower index (the ``previous''
+neighbor pixels).
+\item If one or more of the previous pixels are already labelled 
+then the current pixel will inherit a label from one of them.
+\item If multiple neighors are labelled differently, then this 
+information is inserted into the equivalency table.
+\item Collapse the equivalency table after all output pixels have 
+been checked.
+\item Revisit all output pixels, lookup their value in the equivalency table and replace.
+\end{itemize}
+
+This is a 3 pass algorithm.
+
+\section{Test host}
+The host used to generate the timing information quoted in this report was:
+
+\section{Optimizing the existing filter}
+The filter was optimized in two stages. The first set of changed included:
+\begin{itemize}
+\item Updating the neighborhood iterator only when over non-zero pixels,
+      rather than incrementing along with the standard iterator:
+\begin{listing}
+nit += oit.GetIndex() - nit.GetIndex(); 
+\end{listing}
+
+\item About 5\% of the computation time was being spent in the progress reporter. The reporter was modified to report once per stage, rather than once per pixel.
+\end{itemize}
+
+These changes lead to a reduction in computation time from {\bf 4.96}
+to {\bf 2.98} seconds for 1000 face connected labellings of the
+BrainMidSagittalSlice image thresholded at 100 and from {\bf 100.6} to
+{\bf 55.8} seconds for 100 iterations of a $256 \times 256 \times 120$
+brain MRI.
+
+A significant improvement for such a minor change!
+
+The modified class is {\em itkConnectedComponentImageFilter1}.
+
+The second attempt at optimization employed the approach recommended
+in the ITK documentation -- avoid unnecesary boundary condition checks
+by dividing the volume into regions using the face calculator. This
+complicates the code, but doesn't change the fundamental
+algorithm. The central volume is processed first, followed by the edge
+volumes. Since we are no longer visiting the pixels in strict raster
+order the neighborhood operators for the edge regions must visit all
+neighbors, not just the ``previous'' ones, which probably means that
+the equivalency table will be slightly larger than the original.
+
+These changes lead to a reduction in computation time from {\bf 2.98}
+to {\bf 2.83} for the 2D case, but increased the computation time from
+{\bf 55.8} to {\bf 59.17} for the 3D case.
+
+It is difficult to be certain of the reason for this, but I suspect
+that it relates to the cache performance. The 2D image is small enough
+to fit in cache, so it doesn't matter very much whether the pixels are
+visited in raster order. The 3D image doesn't fit in cached, so
+visiting face pixels that aren't in raster order may result in a
+significant overhead that offsets any saving due to removal of
+boundary condition check. If this hypothesis is
+correct\footnote{Someone with the intel tools, like vtune, may be able
+to check this.} then it demonstrates that the tradeoffs that must be
+considered when optimizing filters are quite complex. This is
+discussed in more detail in Section \ref{sect:performance_lessons}.
+
+The modified class is {\em itkConnectedComponentImageFilter2}.
+
+\section{A new labelling algorithm}
+Further optimizations to the existing algorithm that avoid the need
+for boundary checks are possible, but require dimension specific code,
+which is not really the ITK way.
+
+I've been considering an alternative, based on run length encoding,
+that sidesteps many of these problems. The new algorithm proceeds as follows:
+\begin{itemize}
+\item Traverse each line of the input image (using a line iterator).
+\item Build a data structure representing a run length encoded version
+ of the line (each line will be a collection of {\em runs}. This is
+ typically quite efficient because the input has only two values -
+ zeros and non zeros, and we are usually interested in labelling
+ ``blob'' like objects. Each run length is given a unique label.
+\item Place the line data structure into a map.
+\item Iterate through the map and find overlapping runs. Insert labels 
+of overlapping lines into the equivalency table.
+\item Collapse the equivalency table.
+\item Iterate through the map, marking the output pixels with the appropriate values from the equivalency tables.
+\end{itemize}
+
+The advantages (in theory) of this approach are - only two passes over
+images - one over input and the other over the output image. There are
+no neighbor hood operations requiring boundary checks. The equivalent
+operations are performed on a per line basis using the map or when
+searching for overlapping runs. In addition the check for equivalent
+labels is done on a per run basis rather than a per pixel basis.
+
+The code for this class is {\em itkConnectedComponentImageFilter3}.
+
+The performance figures for this approach show an improvement for the
+2D case - {\bf 2.83} to {\bf 1.58} but a drop in performance for the
+3D case - {\bf 55.8} to {\bf 79.98}. 
+
+At present profiling isn't providing any insight to the problem -
+advice is welcome.
+
+\section{Testing}
+We need to test whether two labelled images are equivalent, rather
+than whether every pixel is equal. A labelling filter is free to
+assign any label it chooses provided they are unique and the
+definition of ``connectedness'' is consistent. A new comparison
+procedure has been written to support this.
+
+\section{Performance lessons}
+\label{sect:performance_lessons}
 
 \end{document}

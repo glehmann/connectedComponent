@@ -1,5 +1,5 @@
 #Change PROJECT_NAME to the name of your project
-PROJECT()
+PROJECT(labelling)
 
 # set the name of the input image used to run the test
 SET(INPUT_IMAGE "")
@@ -38,8 +38,11 @@ SET(Libraries
 #MyExe will be built using the files MyClass.h and MyClass.cxx, and it will
 #be linked to all the libraries you specified above. 
 #You can build more than one executable per project
-ADD_EXECUTABLE(check check.cxx) 
-TARGET_LINK_LIBRARIES(check ${Libraries})
+ADD_EXECUTABLE(testLabelling testLabelling.cxx) 
+TARGET_LINK_LIBRARIES(testLabelling ${Libraries})
+
+ADD_EXECUTABLE(testEquiv testEquiv.cxx) 
+TARGET_LINK_LIBRARIES(testEquiv ${Libraries})
 
 #the following line is an example of how to add a test to your project.
 #Testname is the title for this particular test.  ExecutableToRun is the
