@@ -7,7 +7,11 @@
 
 \title{Optimization of connected component labelling}
 
-\abstract{The report details some modifications made to the ITK {\em ConnectedComponentImageFilter} in an attempt to improve performance. Some interesting observations were made during this process. A new filter using a different algorithm to perform the same function is also described.}
+\abstract{The report details some modifications made to the ITK 
+{\em ConnectedComponentImageFilter} in an attempt to improve
+performance. Some interesting observations were made during this
+process. A new filter using a different algorithm to perform the same
+function is also described.}
 
 \keyword{connected component labelling, run length encoding}
 \year{2005}
@@ -21,7 +25,7 @@
 % \tableofcontents
 \section{Introduction}
 This work started out as my tutorial for writing ITK filters and
-learning about iterators. 
+learning about iterators.
 
 The ConnectedComponentImageFilter performs a task known as {\em
 labelling} in which each distinct object is given a unique
@@ -31,15 +35,20 @@ to zero. An object, or connected component, is usually defined as a
 set of {\em connected}, non zero pixels, where two pixels being {\em
 connected} means that it is possible to construct a path including
 only non zero pixels between them. Steps along the path are defined by
-a neighborhood function, as illustrated in Figure \ref{}\footnote{It
+a neighborhood function, as illustrated in Figure \ref{fig:neigh}\footnote{It
 is feasible to have neighborhoods that include more than immediately
 adjacent pixels, but this isn't done very often in practice}.
+
+Labelling is often a pre-requisite for operations such as region based
+intensity statistics and shape characterization. It is also useful
+when using marker based approaches.
 
 The filter has since been modified to include a mask image. The
 modified filters do not include this facility.
 
 \begin{figure}[htbp]
 \begin{center}
+\includegraphics{connect}
 \label{fig:neigh}
 \caption{4 and 8 connected neighborhoods used in 2D labelling.}
 \end{center}
@@ -47,7 +56,7 @@ modified filters do not include this facility.
 
 \section{Important notes}
 Whenever optimizing itk filters there is one important check -- make
-sure that you build the library in release mode. This is often
+sure that you build the library in {\bf Release} mode. This is often
 mentioned on the mailing lists, but is easy to forget. Release mode
 isn't the default build option and makes a big difference in
 performance when compared to the less optimized modes.
@@ -74,14 +83,16 @@ This is a 3 pass algorithm.
 \section{Test host}
 The host used to generate the timing information quoted in this report was:
 
+{\em fill this in}
+
 \section{Optimizing the existing filter}
 The filter was optimized in two stages. The first set of changed included:
 \begin{itemize}
 \item Updating the neighborhood iterator only when over non-zero pixels,
       rather than incrementing along with the standard iterator:
-\begin{listing}
+\begin{lstlisting}
 nit += oit.GetIndex() - nit.GetIndex(); 
-\end{listing}
+\end{lstlisting}
 
 \item About 5\% of the computation time was being spent in the progress reporter. The reporter was modified to report once per stage, rather than once per pixel.
 \end{itemize}
@@ -170,5 +181,65 @@ procedure has been written to support this.
 
 \section{Performance lessons}
 \label{sect:performance_lessons}
+Optimization of imaging algorithms is difficult to do well. A lot of
+the commonly used procedure probably don't give a meaningful measure
+of how an algorithm will perform in an application. However optimizing
+is still worth doing and can lead to important insights and new
+ideas. The important thing is to think of optimization as you might
+any other experiment and consider exactly what it is you are testing.
+
+Here are some thoughts.
+
+Optimization of image related operations is very strongly dependent on
+cache performance. Techniques that appear to offer very good
+performance when tested on images that fit in cache may perform very
+badly on images that don't - algorithms that access data in a semi
+random way are examples. In the case of simple algorithms the
+performance may be entirely dependent on the main memory
+bandwidth. Some experiments I once did using the Intel SIMD
+instructions illustrated this. When using SIMD instructions to perform
+arithmetic on arrays it is theoretically possible to achieve
+performance improvements of between 2 and 16 times, depending on the
+data types involved. I used the gcc extensions that support vector
+operations to implement SIMD array arithmetic, and when the arrays
+were small the improvement in speed was obvious. However as soon as
+the arrays became significantly larger than cache the performance
+became identical to the non SIMD equivalent. This was an example of
+performance being entirely memory bandwidth dependent.
+
+The streaming architecture used in ITK is potentially ideal for
+optimizing cache performance. In the case of simple arithmetic, for
+example, it would make sense to perform all of the operations on a
+small block at a time and the move on to the next one. The problem is
+that there are remarkably few interesting imaging algorithms that can
+be broken up this way and probably even fewer applications that can be
+constructed using only streamable filters.
+
+The testing methodology is also open to question. For example, if we
+test on a filter on a small image because the application is also
+going to involve small images, then the usual procedure is to repeat
+the computation a number of times and take the average. Sounds
+reasonable. However most applications have quite a few steps, each of
+which involves one or more copies of the image, so even with small
+images we are likely to exceed the cache size. This means that
+performance of filters that were measured by repeatedly running the
+computation in cache are probably not going to resemble the
+performance of filters in the application, because the application
+only uses each image once or twice and needs to maintain multiple
+copies of related images that consume cache resources.
+
+In matrix libraries the size of operands is taken into account when
+deciding how to carry out an operation. This leads to much more
+complicated code, which is something that should probably be avoided
+in ITK.
+
+\section{Other observations}
+None of the filters allow a connectivity of 18 for 3D images. The
+commonly used connectivities in 3D are 6 (face connected), 26 (fully
+connected) and 18. If the connectivity cube is considered as 3 layers
+then for a connectivity of 18 the top layer has 5 active connection
+(center and 4 corners), as does the bottom layer. The middle layer has
+all elements active. I doubt that this capability is particularly
+signficant, but it is worth noting that it isn't available.
 
 \end{document}
