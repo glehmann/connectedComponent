@@ -1,0 +1,162 @@
+Initial tests:
+
+Create a set of 2d and 3d profiles. The 2D versions used 1000
+iterations, the 3d used 10.
+
+** These tests used default compilation flags that DON'T include optimization
+** Second set of timing figures in each test used Release mode
+Test                         
+
+1) BrainMidSagittalSlice.png, 1000 iterations, connect = 4
+
+result: orig_BrainMidSagittalSlice_1000_4.prof
+
+timing without -pg:
+25.94user 0.08system 0:26.05elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+2250minor)pagefaults 0swaps
+
+timing release mode:
+4.98user 0.01system 0:05.00elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+1783minor)pagefaults 0swaps
+
+2)BrainMidSagittalSlice.png, 1000 iterations, connect = 8
+
+result: orig_BrainMidSagittalSlice_1000_8.prof
+
+timing without -pg:
+28.48user 0.07system 0:28.58elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+2250minor)pagefaults 0swaps
+
+timing release mode:
+5.05user 0.02system 0:05.08elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+1784minor)pagefaults 0swaps
+
+3) brain.tif, 10 iterations, connect=6.
+
+result: orig_brain3d_10_6.prof
+
+timing without -pg:
+
+58.61user 0.45system 0:59.49elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+9906minor)pagefaults 0swaps
+
+timing release mode:
+
+11.04user 0.33system 0:11.76elapsed 96%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+9447minor)pagefaults 0swaps
+
+4) brain.tif, 10 iterations, connect=26.
+result: orig_brain3d_10_26.prof
+
+121.67user 0.57system 2:02.31elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+9869minor)pagefaults 0swaps
+
+timing release mode:
+
+16.51user 0.33system 0:16.86elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+9409minor)pagefaults 0swaps
+
+Comments:
+
+Checked with Voir - 3d case, 6 connectivity takes 2.8 seconds, 26 connect takes 3.5 seconds
+2d case, 4 and 8 conectivity take about 2.2 -> 2.4 seconds
+
+
+---------------------------------------------------------------
+Notes - compare with matlab labelling speed.
+--------------------------------------------------------------
+
+Changes:
+
+1) avoid incrementing nit at every pixel - use nit.SetLocation(oit.GetIndex()) when we find a non zero pixel.
+
+Result:
+
+Timing result for test number 1) 21.5 seconds 2) 18.75 seconds - quicker, but ordering doesn't make sense.
+
+Check the profiling of the two tests to see where the difference is:
+
+4 connected: ranking of functions in order of time spent is GenerateData,
+hashtable, boundary conditions, hashtable, progress reporter.
+
+8 connected: GenerateData, boundary conditions, hash table, progress reporter, hashtable.
+
+Should also test a completely full image to see if we experience slow down.
+
+2) Turn of progress reporter.
+4 connected: 20.9
+8 connected: 17.97
+
+Doesn't agree with profiler - 2.9 seconds. OK, maybe it does, because
+the other part of the profiler output says 6%. 
+
+After changes it shows up as 0%. Time difference is obviously
+profiling overhead.
+
+Timing with both changes and Release mode
+
+4 connected: 3.20
+8 connected: 3.11
+
+3D
+6 connected: 7.41
+26 connected: 10.42
+
+Check that the results are the same: Confirmed for 2D case.
+
+
+For some reason the 8 connected is still faster than the 4 connected.
+
+Can only suppose that the fully connected data results in fewer
+searches of the equivalency table.
+
+Sources for this version is simp_itkConnectedComponentImageFilter.???
+
+----------------------------------------
+
+Now look at more major changes. 
+
+1) Should only need 2 passes.
+2) Use separate face iterators so we avoid overhead of boundary conditions.
+3) Maybe we can be a bit smarter about looking up the equivalency table - e.g by keeping track of runs of pixels.
+
+
+-----------------------------------------
+
+More major changes that aren't dimension dependent.
+
+Using face calculator so that bounds checking can be turned off for
+the body region.
+
+1) BrainMidSagittalSlice.png, 1000 iterations, connect = 4
+
+3.15user 0.01system 0:03.17elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+1788minor)pagefaults 0swaps
+
+2)BrainMidSagittalSlice.png, 1000 iterations, connect = 8
+2.86user 0.01system 0:02.88elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+1787minor)pagefaults 0swaps
+
+
+3) brain.tif, 10 iterations, connect=6.
+7.95user 0.32system 0:08.34elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+9452minor)pagefaults 0swaps
+
+4) brain.tif, 10 iterations, connect=26.
+11.79user 0.35system 0:12.17elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (0major+9415minor)pagefaults 0swaps
+
+ *** 3D case seems to have slowed down with after using the face calculator **
+
+Slowdown is of order of 10%
+
+Run 2d and 3d with profiling
+
+Nothing really obvious.
+
+My guess - the 3d image doesn't fit in cache, and breaking the image
+into face and body regions introduces enough cache misses to offset
+any gain due to reduction in boundary condition checks.
+
+
+Write code to confirm that results are equivalent....
