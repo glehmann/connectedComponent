@@ -144,6 +144,8 @@ private:
       long length;  // run length information - may be a more type safe way of doing this
       typename InputImageType::IndexType where;  // Index of the start of the run
       OutputPixelType label; // the initial label of the run
+      // a flag to indicate whether we have already relablled this entry
+      bool relabelled;   
     };
 
   typedef std::vector<runLength> lineEncoding;
@@ -151,13 +153,15 @@ private:
   // the map storing lines
   typedef std::map<long, lineEncoding> LineMapType;
   
-  typedef std::vector<long> LineOffsets;
+  typedef std::vector<long> OffsetVec;
 
-  void CompareLines(const lineEncoding &current, const lineEncoding &Neighbour,
+  void CompareLines(lineEncoding &current, const lineEncoding &Neighbour,
 		    EquivalencyTable::Pointer &eqTable );
 
   void FillOutput(const LineMapType &LineMap,
 		  const EquivalencyTable::Pointer &eqTable);
+
+  void SetupLineOffsets(OffsetVec &LineOffsets);
 };
   
 } // end namespace itk

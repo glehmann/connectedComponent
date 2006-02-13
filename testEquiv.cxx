@@ -7,7 +7,7 @@
 #include <map>
 
 template <int dimensions, class InputPixelType>
-void checkEquiv(std::string infile1, std::string infile2)
+int checkEquiv(std::string infile1, std::string infile2)
 {
   typedef typename itk::Image< InputPixelType,  dimensions >    InputImageType;
   typedef typename itk::ImageFileReader< InputImageType >  ReaderType;
@@ -40,7 +40,7 @@ void checkEquiv(std::string infile1, std::string infile2)
     std::cerr << "Image dimensions don't match : " << std::endl;
     std::cerr << Im1->GetRequestedRegion().GetSize() << std::endl;
     std::cerr << Im2->GetRequestedRegion().GetSize() << std::endl;
-    return;
+    return EXIT_FAILURE;
     }
 
   // the map structure we'll use to compare pixel labels
@@ -74,10 +74,12 @@ void checkEquiv(std::string infile1, std::string infile2)
   if (Equiv)
     {
     std::cout << "Labelled images are equivalent" << std::endl;
+    return(0);
     }
   else
     {
     std::cout << "Images are not equivalent" << std::endl;    
+    return (1);
     }
 
 }
@@ -97,24 +99,24 @@ int main( int argc, char * argv[] )
   std::string Infile = argv[1];
   std::string Outfile = argv[2];
   int dimensions=2;
-
+  int status = EXIT_FAILURE;
   if (argc > 3) {
     dimensions = atoi(argv[3]);
   }
 
   switch(dimensions) {
   case 2:
-    checkEquiv<2, InputPixelType>(Infile, 
-				  Outfile);
+    status = checkEquiv<2, InputPixelType>(Infile, 
+					   Outfile);
     break;
   case 3:
-    checkEquiv<3, InputPixelType>(Infile, 
-				  Outfile);
+    status = checkEquiv<3, InputPixelType>(Infile, 
+					   Outfile);
     break;
   default:
     std::cerr << "Unsupported dimensions" << std::endl;
     return EXIT_FAILURE;
   }
 
-  return EXIT_SUCCESS;
+  return status;
 }

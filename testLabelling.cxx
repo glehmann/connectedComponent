@@ -1,5 +1,5 @@
 // test and time connected component labelling in itk
-
+#include <iomanip>
 #include <stdlib.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
@@ -8,7 +8,7 @@
 #include "itkConnectedComponentImageFilter1.h"
 #include "itkConnectedComponentImageFilter2.h"
 #include "itkConnectedComponentImageFilter3.h"
-
+#include "itkTimeProbe.h"
 #include "itkBinaryThresholdImageFilter.h"
 
 //const int dimensions = 2;
@@ -69,52 +69,62 @@ void ThreshAndLabel(std::string infile, std::string outfile, int thresh,
   threshfilter->SetLowerThreshold( 0 );
   threshfilter->Update();
 
+  std::cout << "Image size = " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
+
   std::cout << "Read file and thresholded. Now labelling " << repeats << " times" << std::endl;
 
-
+  itk::TimeProbe ltime;
 
   switch (whichMethod) {
   case 0:
     labeller0->SetFullyConnected(fullyConnected);
+    labeller0->SetInput(threshfilter->GetOutput());
     for (int i=0;i<repeats;i++) 
       {
       // set first labeller
-      labeller0->SetInput(NULL);
-      labeller0->SetInput(threshfilter->GetOutput());
+      ltime.Start();
       labeller0->Update();
+      ltime.Stop();
+      labeller0->Modified();
       }
     writer->SetInput(labeller0->GetOutput());
     break;
   case 1:
     labeller1->SetFullyConnected(fullyConnected);
+    labeller1->SetInput(threshfilter->GetOutput());
     for (int i=0;i<repeats;i++) 
       {
       // set first labeller
-      labeller1->SetInput(NULL);
-      labeller1->SetInput(threshfilter->GetOutput());
+      ltime.Start();
       labeller1->Update();
+      ltime.Stop();
+      labeller1->Modified();
       }
     writer->SetInput(labeller1->GetOutput());
     break;
   case 2:
     labeller2->SetFullyConnected(fullyConnected);
+    labeller2->SetInput(threshfilter->GetOutput());
     for (int i=0;i<repeats;i++) 
       {
       // set first labeller
-      labeller2->SetInput(NULL);
-      labeller2->SetInput(threshfilter->GetOutput());
+      ltime.Start();
       labeller2->Update();
+      ltime.Stop();
+      labeller2->Modified();
       }
     writer->SetInput(labeller2->GetOutput());
     break;
   case 3:
     labeller3->SetFullyConnected(fullyConnected);
+    labeller3->SetInput(threshfilter->GetOutput());
     for (int i=0;i<repeats;i++) 
       {
       // set first labeller
-      labeller3->SetInput(NULL);
-      labeller3->SetInput(threshfilter->GetOutput());
+      ltime.Start();
       labeller3->Update();
+      ltime.Stop();
+      labeller3->Modified();
       }
     writer->SetInput(labeller3->GetOutput());
     break;
@@ -124,6 +134,11 @@ void ThreshAndLabel(std::string infile, std::string outfile, int thresh,
 
   writer->SetFileName(outfile.c_str());
   writer->Update();
+  
+  std::cout << "Method \t repeats \t mean time" << std::endl;
+  std::cout << std::setprecision(3) 
+	    << whichMethod << "\t" << repeats << "\t" 
+	    << ltime.GetMeanTime() << std::endl;
 
 }
 
