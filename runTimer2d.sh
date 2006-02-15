@@ -6,7 +6,7 @@ LAB=./testLabelling
 LOG2D=timing2d.log
 
 export CONNECT=0
-export REPEATS=1000
+export REPEATS=10000
 export DIM=2
 export IM2D=BrainMidSagittalSlice.png
 export THRESH=100

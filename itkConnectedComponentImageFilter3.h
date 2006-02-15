@@ -21,6 +21,7 @@
 #include "itkImage.h"
 #include <vector>
 #include <map>
+#include "itkProgressReporter.h"
 
 namespace itk
 {
@@ -159,7 +160,8 @@ private:
 		    EquivalencyTable::Pointer &eqTable );
 
   void FillOutput(const LineMapType &LineMap,
-		  const EquivalencyTable::Pointer &eqTable);
+		  const EquivalencyTable::Pointer &eqTable,
+		  ProgressReporter &progress);
 
   void SetupLineOffsets(OffsetVec &LineOffsets);
 };

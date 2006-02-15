@@ -1,31 +1,74 @@
-\documentclass[IJ]{cesj}
+%
+% Complete documentation on the extended LaTeX markup used for Insight
+% documentation is available in ``Documenting Insight'', which is part
+% of the standard documentation for Insight.  It may be found online
+% at:
+%
+%     http://www.itk.org/
+
+\documentclass{InsightArticle}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  hyperref should be the last package to be loaded.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[dvips,
+bookmarks,
+bookmarksopen,
+backref,
+colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+]{hyperref}
+% to be able to use options in graphics
 \usepackage{graphicx}
+% for pseudo code
 \usepackage{listings}
+% subfigures
+\usepackage{subfigure}
 
-\author{Richard Beare}
-\institute{Department of Medicine, Monash University, Australia}
 
+%  This is a template for Papers to the Insight Journal. 
+%  It is comparable to a technical report format.
+
+% The title should be descriptive enough for people to be able to find
+% the relevant document. 
 \title{Optimization of connected component labelling}
 
-\abstract{The report details some modifications made to the ITK 
+% Increment the release number whenever significant changes are made.
+% The author and/or editor can define 'significant' however they like.
+%\release{0.00}
+
+% At minimum, give your name and an email address.  You can include a
+% snail-mail address if you like.
+\author{Richard Beare}
+\authoraddress{Department of Medicine, Monash University, Australia}
+
+\begin{document}
+\maketitle
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+
+\begin{abstract}
+\noindent
+The report details some modifications made to the ITK 
 {\em ConnectedComponentImageFilter} in an attempt to improve
 performance. Some interesting observations were made during this
 process. A new filter using a different algorithm to perform the same
-function is also described.}
+function is also described and improved performance demonstrated.
+\end{abstract}
 
-\keyword{connected component labelling, run length encoding}
-\year{2005}
+\tableofcontents
 
-\leftmark{}
-\rightmark{}
-
-\begin{document}
 \lstset{language=c++}
 \maketitle
 % \tableofcontents
 \section{Introduction}
 This work started out as my tutorial for writing ITK filters and
-learning about iterators.
+learning about iterators. 
 
 The ConnectedComponentImageFilter performs a task known as {\em
 labelling} in which each distinct object is given a unique
@@ -41,10 +84,13 @@ adjacent pixels, but this isn't done very often in practice}.
 
 Labelling is often a pre-requisite for operations such as region based
 intensity statistics and shape characterization. It is also useful
-when using marker based approaches.
+when using marker based segmentation approaches.
 
-The filter has since been modified to include a mask image. The
-modified filters do not include this facility.
+The connected component filter in itk has since been modified to
+include a mask image. The modified filters do not include this
+facility \footnote{It is not immediately clear why the masking
+capability should be included in the filter rather than in the
+pipeline preceeding it.}.
 
 \begin{figure}[htbp]
 \begin{center}
@@ -55,11 +101,17 @@ modified filters do not include this facility.
 \end{figure}
 
 \section{Important notes}
-Whenever optimizing itk filters there is one important check -- make
+Whenever optimizing itk filters there two important checks -- make
 sure that you build the library in {\bf Release} mode. This is often
 mentioned on the mailing lists, but is easy to forget. Release mode
 isn't the default build option and makes a big difference in
-performance when compared to the less optimized modes.
+performance when compared to the less optimized modes. Also ensure
+that the ITK libraries are built with profiling turned on and that you
+are linking against the correct libraries. If you built shared
+libraries to support interpreter interfaces you may not be getting the
+correct profile measurements. I discovered this much too late - in my
+case much of the time related to the equivalency table was not
+reported in my initial investigations.
 
 \section{Current labelling algorithm}
 The existing labelling algorithms is:
@@ -80,13 +132,25 @@ been checked.
 
 This is a 3 pass algorithm.
 
-\section{Test host}
-The host used to generate the timing information quoted in this report was:
+\section{Test hosts and images}
+Two hosts were used to test the filter described in this report. The
+first (host 1) was an AMD Athlon XP 2000+, 1.67GHz, 256kB cache and
+256M RAM and the second (host 2) was an AMD Athlon 64 3000+, 1.8GHz
+with 512kB cache and 1GB RAM.
 
-{\em fill this in}
+Three images were used in testing, two of which are included in the
+associated archive. The 2D image is the $217 \times 180$
+BrainMidSagittalSlice image from the ITK distribution and the 3D
+images are are a $371 \times 371 \times 34$ image of cells (ESCells,
+included in the archive) and a $256 \times 256 \times 120$ brain mri
+image that is not included in the archive. The ESCells image had about
+twice as many pixels above the thresholds used in the study as the
+brain mri image.
 
 \section{Optimizing the existing filter}
-The filter was optimized in two stages. The first set of changed included:
+The filter was optimized in two stages, and the timing results are
+summarized in Tables \ref{tbl:timing1} and \ref{tbl:timing2}. The
+first set of changed included:
 \begin{itemize}
 \item Updating the neighborhood iterator only when over non-zero pixels,
       rather than incrementing along with the standard iterator:
@@ -94,16 +158,22 @@ The filter was optimized in two stages. The first set of changed included:
 nit += oit.GetIndex() - nit.GetIndex(); 
 \end{lstlisting}
 
-\item About 5\% of the computation time was being spent in the progress reporter. The reporter was modified to report once per stage, rather than once per pixel.
+\item About 5\% of the computation time was being spent in the 
+progress reporter. The reporter was modified to report once per stage,
+rather than once per pixel. (This proportion was almost certainly
+wrong, due to incorrect profiling).
 \end{itemize}
 
-These changes lead to a reduction in computation time from {\bf 4.96}
-to {\bf 2.98} seconds for 1000 face connected labellings of the
-BrainMidSagittalSlice image thresholded at 100 and from {\bf 100.6} to
-{\bf 55.8} seconds for 100 iterations of a $256 \times 256 \times 120$
-brain MRI.
+%These changes lead to a reduction in computation time from {\bf 0.00477}
+%to {\bf 0.00278} seconds for a face connected labelling of the
+%BrainMidSagittalSlice image thresholded at 100 and from {\bf 1.06} to
+%{\bf 0.922} seconds for the $371 \times 371 \times 34$
+%ESCells image.
 
-A significant improvement for such a minor change!
+%A significant improvement for such a minor change in the first
+%example! It should also be noted that as significant improvements were
+%not observed in other 3D images that had a higher proportion of empty
+%pixels, as would be expected.
 
 The modified class is {\em itkConnectedComponentImageFilter1}.
 
@@ -117,23 +187,40 @@ order the neighborhood operators for the edge regions must visit all
 neighbors, not just the ``previous'' ones, which probably means that
 the equivalency table will be slightly larger than the original.
 
-These changes lead to a reduction in computation time from {\bf 2.98}
-to {\bf 2.83} for the 2D case, but increased the computation time from
-{\bf 55.8} to {\bf 59.17} for the 3D case.
+
+
+The modified class is {\em itkConnectedComponentImageFilter2}.
+
+\subsection{Optimization results}
+A curious thing to note is that the performance of both hosts was very
+similar, despite one being a much older machine. It may be that the
+performance of this type of operation is largely governed by memory
+performance, and both machines have similar capabilities in this
+regard.
+
+The first modification produced a marked improvement in speed on
+images that were largely empty, and will make no difference at all to
+images that are completely full. This reasons are fairly obvious as we
+have removed an operation that is redundant for empty pixels.
+
+The second modification is somewhat harder to understand. For host 1
+there was a minor improvement in the 2D case and the ESCells case, but
+a decrease in performance in the case of the brain MRI. For host 2
+there was no significant difference in the 2D case, a minor
+improvement in the case of ESCells and a decrease in performance in
+the case of the brain MRI.
 
 It is difficult to be certain of the reason for this, but I suspect
 that it relates to the cache performance. The 2D image is small enough
 to fit in cache, so it doesn't matter very much whether the pixels are
-visited in raster order. The 3D image doesn't fit in cached, so
-visiting face pixels that aren't in raster order may result in a
-significant overhead that offsets any saving due to removal of
+visited in raster order or not. The brain mri image doesn't fit in
+cache, so visiting face pixels that aren't in raster order may result
+in a significant overhead that offsets any saving due to removal of
 boundary condition check. If this hypothesis is
 correct\footnote{Someone with the intel tools, like vtune, may be able
 to check this.} then it demonstrates that the tradeoffs that must be
 considered when optimizing filters are quite complex. This is
 discussed in more detail in Section \ref{sect:performance_lessons}.
-
-The modified class is {\em itkConnectedComponentImageFilter2}.
 
 \section{A new labelling algorithm}
 Further optimizations to the existing algorithm that avoid the need
@@ -158,19 +245,83 @@ of overlapping lines into the equivalency table.
 
 The advantages (in theory) of this approach are - only two passes over
 images - one over input and the other over the output image. There are
-no neighbor hood operations requiring boundary checks. The equivalent
+no neighborhood operations requiring boundary checks. The equivalent
 operations are performed on a per line basis using the map or when
 searching for overlapping runs. In addition the check for equivalent
-labels is done on a per run basis rather than a per pixel basis.
+labels is done on a per run basis rather than a per pixel basis. The
+differences between full connectivity and face connectivity should
+also be less significant because the relevant checks are also done on
+a per line basis.
 
-The code for this class is {\em itkConnectedComponentImageFilter3}.
+There are some images that could produce extremely bad performance for
+this algorithm -- labelling thin linear objects oriented orthogonal to
+the direction of the line iterator is one example. However this is
+fairly unlikely.
 
-The performance figures for this approach show an improvement for the
-2D case - {\bf 2.83} to {\bf 1.58} but a drop in performance for the
-3D case - {\bf 55.8} to {\bf 79.98}. 
+The code for this class is {\em itkConnectedComponentImageFilter3}
+\footnote{Further improvements may be made by using line iterators
+that don't maintain the index - indexes are used in this code, but not
+particularly often so non indexed iterators may provide an advantage.}.
 
-At present profiling isn't providing any insight to the problem -
-advice is welcome.
+A progress reporter has been added to this filter to report progress
+per line, rather than per pixel is normal. This is a compromise
+between the standard per pixel approach and the per stage approach
+adopted based on erroneous profiling information.
+
+The performance figures for this approach show improvements in both
+the 2D and 3D cases for both hosts. In some cases the improvement is a
+factor of 10 over the original algorithm.
+
+The trick that was necessary to guarantee this performance was to take
+the opportunity to relabel without referencing the equivalency table
+where ever possible. If this wasn't done the equivalency table proved
+to be a bottle neck for some images.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Method & BrainMidSagittalSlice & brain mri & ESCells \\
+\hline
+\hline
+0 - face conn & 0.00489   & 0.98 & 0.984 \\
+0 - full conn & 0.005     & 1.51 & 2.84 \\
+\hline
+1 - face conn & 0.00288   & 0.517 & 0.789 \\
+1 - full conn & 0.00287   & 0.819 & 2.54 \\
+\hline
+2 - face conn & 0.00265   & 0.589 & 0.754 \\
+2 - full conn & 0.00247   & 0.949 & 2.33 \\
+\hline
+3 - face conn & 0.00103   & 0.19 & 0.083 \\
+3 - full conn & 0.00104   & 0.212 & 0.09 \\
+\hline
+\end{tabular}
+\caption{Execution time for host 1. \label{tbl:timing1}}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Method & BrainMidSagittalSlice & brain mri & ESCells \\
+\hline
+\hline
+0 - face conn & 0.00392   & 0.94 & 1.08 \\
+0 - full conn & 0.00367   & 1.46 & 3.21 \\
+\hline
+1 - face conn & 0.00277   & 0.595 & 1.0 \\
+1 - full conn & 0.00241   & 0.928 & 2.94 \\
+\hline
+2 - face conn & 0.00278   & 0.665 & 0.925 \\
+2 - full conn & 0.00235   & 1.12 & 2.85 \\
+\hline
+3 - face conn & 0.00087   & 0.218 & 0.103 \\
+3 - full conn & 0.00087   & 0.239 & 0.071 \\
+\hline
+\end{tabular}
+\caption{Execution time for host 2. \label{tbl:timing2}}
+\end{table}
 
 \section{Testing}
 We need to test whether two labelled images are equivalent, rather
@@ -178,6 +329,11 @@ than whether every pixel is equal. A labelling filter is free to
 assign any label it chooses provided they are unique and the
 definition of ``connectedness'' is consistent. A new comparison
 procedure has been written to support this.
+
+Equivalence tests can be run using ``ctest'' as usual. Timing tests
+will be run at the end of the equivalance tests, and can be run
+separately using the runTimer2d.sh and runTimer3d.sh scripts, which
+produce log files called timing2d.log and timing3d.log.
 
 \section{Performance lessons}
 \label{sect:performance_lessons}
@@ -203,7 +359,7 @@ performance improvements of between 2 and 16 times, depending on the
 data types involved. I used the gcc extensions that support vector
 operations to implement SIMD array arithmetic, and when the arrays
 were small the improvement in speed was obvious. However as soon as
-the arrays became significantly larger than cache the performance
+the arrays became significantly larger than cache, the performance
 became identical to the non SIMD equivalent. This was an example of
 performance being entirely memory bandwidth dependent.
 
@@ -242,4 +398,16 @@ then for a connectivity of 18 the top layer has 5 active connection
 all elements active. I doubt that this capability is particularly
 signficant, but it is worth noting that it isn't available.
 
+\section{Conclusions}
+The report has outlined some simple changes that can improve the
+performance of the connected component image filter and introduced a
+new implementation based on run length encoding that increases the
+performance by a factor of 10 in some cases.
+
+\bibliographystyle{plain}
+\bibliography{InsightJournal}
+%\bibliography{Article}
+\nocite{ITKSoftwareGuide}
+
 \end{document}
+
