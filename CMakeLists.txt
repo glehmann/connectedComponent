@@ -69,27 +69,27 @@ ADD_TEST(comp3d_1 testEquiv orig.img meth1.img 3)
 ADD_TEST(comp3d_2 testEquiv orig.img meth2.img 3)
 ADD_TEST(comp3d_3 testEquiv orig.img meth3.img 3)
 
-ADD_TEST(lab2d_af testLabelling BrainMidSagittalSlice.png orig.tif 100 2 0 1 1)
-ADD_TEST(lab2d_bf testLabelling BrainMidSagittalSlice.png meth1.tif 100 2 1 1 1)
-ADD_TEST(lab2d_cf testLabelling BrainMidSagittalSlice.png meth2.tif 100 2 2 1 1)
-ADD_TEST(lab2d_df testLabelling BrainMidSagittalSlice.png meth3.tif 100 2 3 1 1)
+ADD_TEST(lab2d_af testLabelling BrainMidSagittalSlice.png orig_f.tif 100 2 0 1 1)
+ADD_TEST(lab2d_bf testLabelling BrainMidSagittalSlice.png meth1_f.tif 100 2 1 1 1)
+ADD_TEST(lab2d_cf testLabelling BrainMidSagittalSlice.png meth2_f.tif 100 2 2 1 1)
+ADD_TEST(lab2d_df testLabelling BrainMidSagittalSlice.png meth3_f.tif 100 2 3 1 1)
 
 ## fully connected tests
-ADD_TEST(comp2d_1f testEquiv orig.tif meth1.tif 2)
-ADD_TEST(comp2d_2f testEquiv orig.tif meth2.tif 2)
-ADD_TEST(comp2d_3f testEquiv orig.tif meth3.tif 2)
+ADD_TEST(comp2d_1f testEquiv orig_f.tif meth1_f.tif 2)
+ADD_TEST(comp2d_2f testEquiv orig_f.tif meth2_f.tif 2)
+ADD_TEST(comp2d_3f testEquiv orig_f.tif meth3_f.tif 2)
 
-ADD_TEST(lab3d_af testLabelling ESCells.img orig.img 100 3 0 1 1)
-ADD_TEST(lab3d_bf testLabelling ESCells.img meth1.img 100 3 1 1 1)
-ADD_TEST(lab3d_cf testLabelling ESCells.img meth2.img 100 3 2 1 1)
-ADD_TEST(lab3d_df testLabelling ESCells.img meth3.img 100 3 3 1 1)
+ADD_TEST(lab3d_af testLabelling ESCells.img orig_f.img 100 3 0 1 1)
+ADD_TEST(lab3d_bf testLabelling ESCells.img meth1_f.img 100 3 1 1 1)
+ADD_TEST(lab3d_cf testLabelling ESCells.img meth2_f.img 100 3 2 1 1)
+ADD_TEST(lab3d_df testLabelling ESCells.img meth3_f.img 100 3 3 1 1)
 
-ADD_TEST(comp2d_1f testEquiv orig.img meth1.img 3)
-ADD_TEST(comp2d_2f testEquiv orig.img meth2.img 3)
-ADD_TEST(comp2d_2f testEquiv orig.img meth3.img 3)
+ADD_TEST(comp2d_1f testEquiv orig_f.img meth1_f.img 3)
+ADD_TEST(comp2d_2f testEquiv orig_f.img meth2_f.img 3)
+ADD_TEST(comp2d_2f testEquiv orig_f.img meth3_f.img 3)
 
 ## timing test
-ADD_TEST(timing2d runTimer2d.sh)
-ADD_TEST(timing3d runTimer3d.sh)
+#ADD_TEST(timing2d runTimer2d.sh)
+#ADD_TEST(timing3d runTimer3d.sh)
 #ADD_TEST(Dilate2DCompare ImageCompare bdilate2D.tif hdilate2D.tif)
 
