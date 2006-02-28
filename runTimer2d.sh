@@ -8,7 +8,7 @@ LOG2D=timing2d.log
 export CONNECT=0
 export REPEATS=10000
 export DIM=2
-export IM2D=BrainMidSagittalSlice.png
+export IM2D=$1
 export THRESH=100
 (
 for M in 0 1 2 3 ; 

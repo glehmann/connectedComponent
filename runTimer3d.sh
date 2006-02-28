@@ -9,7 +9,7 @@ export LOG3D=timing3d.log
 export CONNECT=0
 export REPEATS=10
 export DIM=3
-export IM3D=brain.tif #ESCells.img
+export IM3D=$1
 export THRESH=100
 (
 for M in 0 1 2 3 ; 

@@ -89,7 +89,7 @@ ADD_TEST(comp3d_2f testEquiv lab3d_af.img lab3d_cf.img 3)
 ADD_TEST(comp3d_2f testEquiv lab3d_af.img lab3d_df.img 3)
 
 ## timing test
-# ADD_TEST(timing2d sh ${CMAKE_SOURCE_DIR}/runTimer2d.sh)
-# ADD_TEST(timing3d sh ${CMAKE_SOURCE_DIR}/runTimer3d.sh)
+ADD_TEST(timing2d sh ${CMAKE_SOURCE_DIR}/runTimer2d.sh ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png)
+ADD_TEST(timing3d sh ${CMAKE_SOURCE_DIR}/runTimer3d.sh ${CMAKE_SOURCE_DIR}/images/ESCells.img)
 #ADD_TEST(Dilate2DCompare ImageCompare bdilate2D.tif hdilate2D.tif)
 
