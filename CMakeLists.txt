@@ -55,41 +55,52 @@ ADD_TEST(lab2d_a testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.
 ADD_TEST(lab2d_b testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_b.png 100 2 1 1 0)
 ADD_TEST(lab2d_c testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_c.png 100 2 2 1 0)
 ADD_TEST(lab2d_d testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_d.png 100 2 3 1 0)
+ADD_TEST(lab2d_e testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_e.png 100 2 4 1 0)
+
 
 ADD_TEST(comp2d_1 testEquiv lab2d_a.png lab2d_b.png 2)
 ADD_TEST(comp2d_2 testEquiv lab2d_a.png lab2d_c.png 2)
 ADD_TEST(comp2d_3 testEquiv lab2d_a.png lab2d_d.png 2)
+ADD_TEST(comp2d_4 testEquiv lab2d_a.png lab2d_e.png 2)
 
 ADD_TEST(lab3d_a testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_a.img 100 3 0 1 0)
 ADD_TEST(lab3d_b testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_b.img 100 3 1 1 0)
 ADD_TEST(lab3d_c testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_c.img 100 3 2 1 0)
 ADD_TEST(lab3d_d testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_d.img 100 3 3 1 0)
+ADD_TEST(lab3d_e testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_e.img 100 3 4 1 0)
 
 ADD_TEST(comp3d_1 testEquiv lab3d_a.img lab3d_b.img 3)
 ADD_TEST(comp3d_2 testEquiv lab3d_a.img lab3d_c.img 3)
 ADD_TEST(comp3d_3 testEquiv lab3d_a.img lab3d_d.img 3)
+ADD_TEST(comp3d_4 testEquiv lab3d_a.img lab3d_e.img 3)
 
 ## fully connected tests
 ADD_TEST(lab2d_af testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_af.png 100 2 0 1 1)
 ADD_TEST(lab2d_bf testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_bf.png 100 2 1 1 1)
 ADD_TEST(lab2d_cf testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_cf.png 100 2 2 1 1)
 ADD_TEST(lab2d_df testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_df.png 100 2 3 1 1)
+ADD_TEST(lab2d_ef testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_ef.png 100 2 4 1 1)
+
 
 ADD_TEST(comp2d_1f testEquiv lab2d_af.png lab2d_bf.png 2)
 ADD_TEST(comp2d_2f testEquiv lab2d_af.png lab2d_cf.png 2)
 ADD_TEST(comp2d_3f testEquiv lab2d_af.png lab2d_df.png 2)
+ADD_TEST(comp2d_4f testEquiv lab2d_af.png lab2d_ef.png 2)
+
 
 ADD_TEST(lab3d_af testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_af.img 100 3 0 1 1)
 ADD_TEST(lab3d_bf testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_bf.img 100 3 1 1 1)
 ADD_TEST(lab3d_cf testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_cf.img 100 3 2 1 1)
 ADD_TEST(lab3d_df testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_df.img 100 3 3 1 1)
+ADD_TEST(lab3d_ef testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_ef.img 100 3 4 1 1)
 
 ADD_TEST(comp3d_1f testEquiv lab3d_af.img lab3d_bf.img 3)
 ADD_TEST(comp3d_2f testEquiv lab3d_af.img lab3d_cf.img 3)
 ADD_TEST(comp3d_2f testEquiv lab3d_af.img lab3d_df.img 3)
+ADD_TEST(comp3d_4f testEquiv lab3d_af.img lab3d_ef.img 3)
 
 ## timing test
 ADD_TEST(timing2d sh ${CMAKE_SOURCE_DIR}/runTimer2d.sh ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png)
 ADD_TEST(timing3d sh ${CMAKE_SOURCE_DIR}/runTimer3d.sh ${CMAKE_SOURCE_DIR}/images/ESCells.img)
-#ADD_TEST(Dilate2DCompare ImageCompare bdilate2D.tif hdilate2D.tif)
+
 

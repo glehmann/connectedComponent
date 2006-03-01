@@ -8,6 +8,7 @@
 #include "itkConnectedComponentImageFilter1.h"
 #include "itkConnectedComponentImageFilter2.h"
 #include "itkConnectedComponentImageFilter3.h"
+#include "itkConnectedComponentImageFilter4.h"
 #include "itkTimeProbe.h"
 #include "itkBinaryThresholdImageFilter.h"
 
@@ -34,6 +35,7 @@ void ThreshAndLabel(std::string infile, std::string outfile, int thresh,
   typedef itk::ConnectedComponentImageFilter1<InputImageType, OutputImageType> LabelFilt1;
   typedef itk::ConnectedComponentImageFilter2<InputImageType, OutputImageType> LabelFilt2;
   typedef itk::ConnectedComponentImageFilter3<InputImageType, OutputImageType> LabelFilt3;
+  typedef itk::ConnectedComponentImageFilter4<InputImageType, OutputImageType> LabelFilt4;
 
   typedef itk::ImageFileReader< InputImageType >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
@@ -52,11 +54,13 @@ void ThreshAndLabel(std::string infile, std::string outfile, int thresh,
   typename LabelFilt1::Pointer labeller1;
   typename LabelFilt2::Pointer labeller2;
   typename LabelFilt3::Pointer labeller3;
+  typename LabelFilt4::Pointer labeller4;
 
   labeller0 = LabelFilt0::New();
   labeller1 = LabelFilt1::New();
   labeller2 = LabelFilt2::New();
   labeller3 = LabelFilt3::New();
+  labeller4 = LabelFilt4::New();
 
   // set up reader
   reader->SetFileName(infile.c_str());
@@ -127,6 +131,19 @@ void ThreshAndLabel(std::string infile, std::string outfile, int thresh,
       labeller3->Modified();
       }
     writer->SetInput(labeller3->GetOutput());
+    break;
+  case 4:
+    labeller4->SetFullyConnected(fullyConnected);
+    labeller4->SetInput(threshfilter->GetOutput());
+    for (int i=0;i<repeats;i++) 
+      {
+      // set first labeller
+      ltime.Start();
+      labeller4->Update();
+      ltime.Stop();
+      labeller4->Modified();
+      }
+    writer->SetInput(labeller4->GetOutput());
     break;
   default:
     std::cerr << "Unknown labelling option" << std::endl;
