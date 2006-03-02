@@ -277,6 +277,26 @@ the opportunity to relabel without referencing the equivalency table
 where ever possible. If this wasn't done the equivalency table proved
 to be a bottle neck for some images.
 
+\subsection{Suggestions by reviewers}
+A number of enhancements suggested by reviewers have been implemented
+in {\em itkConnectedComponentImageFilter4}. These include
+\begin{itemize}
+\item Consecutive output labels. In fact the output now labels 
+consecutively with the ordering dependent on raster order -- i.e the
+first object to be detected in a raster order scan will be number 1,
+the second number 2 and so on. This was implemented by replacing the
+equivalency table with a simple union-find algorithm. There seems to
+be a marginal increase in speed in some cases and the trick of
+pre-merging labels is no longer necessary.
+\item Raising exceptions when the number of objects exceeds the maximum 
+label value possible for the output pixel type.
+\item My test results are include in the subdirectory {\em ImageResults}. 
+Details of how to generate these results can be found in the
+CMakeLists.txt file.
+\end{itemize}
+Note that these changes have only been timed on host 2.
+
+\subsection{Timing results}
 \begin{table}[htbp]
 \centering
 \begin{tabular}{|c|c|c|c|}
@@ -319,6 +339,9 @@ Method & BrainMidSagittalSlice & brain mri & ESCells \\
 3 - face conn & 0.00087   & 0.218 & 0.103 \\
 3 - full conn & 0.00087   & 0.239 & 0.071 \\
 \hline
+4 - face conn & 0.000783  & 0.188 & 0.104 \\
+4 - full conn & 0.000789  & 0.237 & 0.109 \\
+
 \end{tabular}
 \caption{Execution time for host 2. \label{tbl:timing2}}
 \end{table}
@@ -334,6 +357,36 @@ Equivalence tests can be run using ``ctest'' as usual. Timing tests
 will be run at the end of the equivalance tests, and can be run
 separately using the runTimer2d.sh and runTimer3d.sh scripts, which
 produce log files called timing2d.log and timing3d.log.
+
+The images produce by the fourth filter have consecutive labels and
+can be tested using ImageCompare. This regression test is carried out
+near the end of the testing procedure.
+
+\section{Paths for further improvement}
+The linear iterator being used is the variety that maintains index
+information. This information is rarely used, so performance may be
+improved by using a non indexing iterator when one becomes available.
+
+Threading seems possible in this filter, although the standard
+threading model used by ITK doesn't seem to be the perfect option. The
+obvious choice would be to thread the run length encoding on a per
+line basis, and do something similar when constructing the output
+image and leave the label equivalency step as a single thread
+operation.
+
+\section{Interesting alternative uses for the filter}
+At present the connected component filter produces a labelled
+image. However the internal representation used for objects is also a
+potentially efficient mechansim to carry out a number of other
+operations. For example, it is very easy to compute some binary shape
+measures, like area, from the run length encoded representation. The
+same structure can then be used to perform morphological operations
+efficiently. Another common use of masks is to define regions in which
+grey level statistics are to be measured. This can also be done more
+efficiently using the run length encoding structure.
+
+The ITK spatial object mechanism may provide a path for implementing
+this idea. It needs to be checked out.
 
 \section{Performance lessons}
 \label{sect:performance_lessons}

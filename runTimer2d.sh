@@ -11,7 +11,7 @@ export DIM=2
 export IM2D=$1
 export THRESH=100
 (
-for M in 0 1 2 3 ; 
+for M in 0 1 2 3 4 ; 
 do
 $LAB $IM2D out.tif $THRESH $DIM $M $REPEATS $CONNECT
 done
@@ -20,7 +20,7 @@ done
 echo "----------------------" >> $LOG2D
 export CONNECT=1
 (
-for M in 0 1 2 3 ; 
+for M in 0 1 2 3 4 ; 
 do
 $LAB $IM2D out.tif $THRESH $DIM $M $REPEATS $CONNECT
 done

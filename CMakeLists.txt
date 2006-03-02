@@ -8,6 +8,8 @@ INCLUDE(IJMacros.txt)
 ENABLE_TESTING()
 INCLUDE(Dart)
 
+FIND_PROGRAM(IMAGE_COMPARE ImageCompare)
+
 #Declare any external dependencies that your project may have here.
 #examples include: ITK, VTK, JPEG, PNG, OpenGL, ZLIB, Perl, Java
 #If you're not sure what name to use, look in the Modules directory of your
@@ -40,6 +42,10 @@ ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
 SET(CurrentExe "testLabelling")
+ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx) 
+TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+
+SET(CurrentExe "testException")
 ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx) 
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
@@ -98,6 +104,13 @@ ADD_TEST(comp3d_1f testEquiv lab3d_af.img lab3d_bf.img 3)
 ADD_TEST(comp3d_2f testEquiv lab3d_af.img lab3d_cf.img 3)
 ADD_TEST(comp3d_2f testEquiv lab3d_af.img lab3d_df.img 3)
 ADD_TEST(comp3d_4f testEquiv lab3d_af.img lab3d_ef.img 3)
+
+ADD_TEST(exceptionCheck testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png exceptionCheck.png 43 2 4 1 0)
+
+ADD_TEST(regression2d   ${IMAGE_COMPARE} lab2d_e.png ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_e.png )
+ADD_TEST(regression2d_f ${IMAGE_COMPARE} lab2d_ef.png ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_ef.png )
+ADD_TEST(regression3d   ${IMAGE_COMPARE} lab3d_e.img ${CMAKE_SOURCE_DIR}/ImageResults/lab3d_e.img )
+ADD_TEST(regression3d_f ${IMAGE_COMPARE} lab3d_ef.img ${CMAKE_SOURCE_DIR}/ImageResults/lab3d_ef.img )
 
 ## timing test
 ADD_TEST(timing2d sh ${CMAKE_SOURCE_DIR}/runTimer2d.sh ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png)
