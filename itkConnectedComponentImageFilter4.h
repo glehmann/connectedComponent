@@ -4,6 +4,7 @@
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
+#include "itkConceptChecking.h"
 #include <vector>
 #include <map>
 #include "itkProgressReporter.h"
@@ -52,8 +53,10 @@ public:
   typedef typename TOutputImage::InternalPixelType OutputInternalPixelType;
   typedef typename TInputImage::PixelType InputPixelType;
   typedef typename TInputImage::InternalPixelType InputInternalPixelType;
-  itkStaticConstMacro(ImageDimension, unsigned int,
+  itkStaticConstMacro(OutputImageDimension, unsigned int,
                       TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int,
+                      TInputImage::ImageDimension);
   
   /**
    * Image typedef support
@@ -93,6 +96,11 @@ public:
   
   // only set after completion
   itkGetConstReferenceMacro(ObjectCount, long);
+
+  // Concept checking -- input and output dimensions must be the same
+  itkConceptMacro(SameDimension,
+		  (Concept::SameDimension<itkGetStaticConstMacro(InputImageDimension),itkGetStaticConstMacro(OutputImageDimension)>));
+
 
 protected:
   ConnectedComponentImageFilter4() 
