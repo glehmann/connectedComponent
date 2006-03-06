@@ -102,7 +102,7 @@ ADD_TEST(lab3d_ef testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_ef.
 
 ADD_TEST(comp3d_1f testEquiv lab3d_af.img lab3d_bf.img 3)
 ADD_TEST(comp3d_2f testEquiv lab3d_af.img lab3d_cf.img 3)
-ADD_TEST(comp3d_2f testEquiv lab3d_af.img lab3d_df.img 3)
+ADD_TEST(comp3d_3f testEquiv lab3d_af.img lab3d_df.img 3)
 ADD_TEST(comp3d_4f testEquiv lab3d_af.img lab3d_ef.img 3)
 
 ADD_TEST(exceptionCheck testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png exceptionCheck.png 43 2 4 1 0)
@@ -113,7 +113,7 @@ ADD_TEST(regression3d   ${IMAGE_COMPARE} lab3d_e.img ${CMAKE_SOURCE_DIR}/ImageRe
 ADD_TEST(regression3d_f ${IMAGE_COMPARE} lab3d_ef.img ${CMAKE_SOURCE_DIR}/ImageResults/lab3d_ef.img )
 
 ## timing test
-ADD_TEST(timing2d sh ${CMAKE_SOURCE_DIR}/runTimer2d.sh ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png)
-ADD_TEST(timing3d sh ${CMAKE_SOURCE_DIR}/runTimer3d.sh ${CMAKE_SOURCE_DIR}/images/ESCells.img)
+#ADD_TEST(timing2d sh ${CMAKE_SOURCE_DIR}/runTimer2d.sh ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png)
+#ADD_TEST(timing3d sh ${CMAKE_SOURCE_DIR}/runTimer3d.sh ${CMAKE_SOURCE_DIR}/images/ESCells.img)
 
 
