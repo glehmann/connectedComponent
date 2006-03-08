@@ -19,12 +19,13 @@ namespace itk
  * ConnectedComponentImageFilter labels the objects in a binary image.
  * Each distinct object is assigned a unique label. The filter experiments
  * with some improvements to the existing implementation, and is based on
- * run length encoding along lines
- * The final object labels are in no particular order (and some object
- * labels may not be used on the final objects).  You can reorder the
- * labels such that object labels are consecutive and sorted based on
- * object size by passing the output of this filter to a
- * RelabelComponentImageFilter. 
+ * run length encoding along raster lines.
+ * The final object labels start with 1 and are consecutive. Objects
+ * that are reached earlier by a raster order scan have a lower
+ * label. This is different to the behaviour of the original connected
+ * component image filter which did not produce consecutive labels or
+ * impose any particular ordering.
+ *
  *
  * \sa ImageToImageFilter
  */
