@@ -151,7 +151,10 @@ ConnectedComponentImageFilter2< TInputImage, TOutputImage >
   // looks forwards and backwards, because we are visiting the
   // faces last and we don't know whether a given face is in front
   // of or behind the body
-  for (fit = (++faceList.begin()); fit != faceList.end(); ++fit)
+
+  fit = faceList.begin();
+  ++fit;
+  for (; fit != faceList.end(); ++fit)
     {
        oit = OutputIteratorType(output, *fit);
        NeighborhoodIteratorType nit2(kernelRadius,output, *fit);	
@@ -159,7 +162,6 @@ ConnectedComponentImageFilter2< TInputImage, TOutputImage >
        setFaceNeighborhood(nit2);
        doRegion(eqTable, oit, nit2, maxLabel);
     }
-
 
   progress.CompletedPixel();
 
@@ -191,7 +193,7 @@ void
 ConnectedComponentImageFilter2< TInputImage, TOutputImage >
 ::doRegion(EquivalencyTable::Pointer &eqTable, 
 OutputIteratorType &oit, NeighborhoodIteratorType &nit, 
-OutputPixelType &maxLabel)
+	   OutputPixelType &maxLabel)
 {
   OutputPixelType    label, originalLabel, neighborLabel;
   const OutputPixelType maxPossibleLabel=NumericTraits<OutputPixelType>::max();
@@ -215,10 +217,12 @@ OutputPixelType &maxLabel)
         // get the label of the pixel previous to this one along a
         // particular dimension (neighbors activated in neighborhood iterator)
         neighborLabel = sIt.Get();
-
+//	if (debug)
+//	  std::cout << neighborLabel << " ";
         // if the previous pixel has a label, verify equivalence or
         // establish a new equivalence
-        if (neighborLabel != NumericTraits<OutputPixelType>::Zero)
+        if ((neighborLabel != NumericTraits<OutputPixelType>::Zero) && 
+	    (neighborLabel != maxPossibleLabel))
           {
           // if current pixel is unlabeled, copy the label from neighbor
           if (label == maxPossibleLabel)
@@ -237,7 +241,7 @@ OutputPixelType &maxLabel)
             }
           }
         }
-
+//      std::cout << std::endl;
       // if none of the "previous" neighbors were set, then make a new label
       if (originalLabel == label)
         {

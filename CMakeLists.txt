@@ -57,17 +57,17 @@ TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 #for this test.  Include as many tests as you like.  If your project doesn't have
 #any tests you can comment out or delete the following line.
 
-ADD_TEST(lab2d_a testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_a.png 100 2 0 1 0)
-ADD_TEST(lab2d_b testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_b.png 100 2 1 1 0)
-ADD_TEST(lab2d_c testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_c.png 100 2 2 1 0)
-ADD_TEST(lab2d_d testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_d.png 100 2 3 1 0)
-ADD_TEST(lab2d_e testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_e.png 100 2 4 1 0)
+ADD_TEST(lab2d_a testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_a.tif 100 2 0 1 0)
+ADD_TEST(lab2d_b testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_b.tif 100 2 1 1 0)
+ADD_TEST(lab2d_c testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_c.tif 100 2 2 1 0)
+ADD_TEST(lab2d_d testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_d.tif 100 2 3 1 0)
+ADD_TEST(lab2d_e testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_e.tif 100 2 4 1 0)
 
 
-ADD_TEST(comp2d_1 testEquiv lab2d_a.png lab2d_b.png 2)
-ADD_TEST(comp2d_2 testEquiv lab2d_a.png lab2d_c.png 2)
-ADD_TEST(comp2d_3 testEquiv lab2d_a.png lab2d_d.png 2)
-ADD_TEST(comp2d_4 testEquiv lab2d_a.png lab2d_e.png 2)
+ADD_TEST(comp2d_1 testEquiv lab2d_a.tif lab2d_b.tif 2)
+ADD_TEST(comp2d_2 testEquiv lab2d_a.tif lab2d_c.tif 2)
+ADD_TEST(comp2d_3 testEquiv lab2d_a.tif lab2d_d.tif 2)
+ADD_TEST(comp2d_4 testEquiv lab2d_a.tif lab2d_e.tif 2)
 
 ADD_TEST(lab3d_a testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_a.img 100 3 0 1 0)
 ADD_TEST(lab3d_b testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_b.img 100 3 1 1 0)
@@ -81,17 +81,17 @@ ADD_TEST(comp3d_3 testEquiv lab3d_a.img lab3d_d.img 3)
 ADD_TEST(comp3d_4 testEquiv lab3d_a.img lab3d_e.img 3)
 
 ## fully connected tests
-ADD_TEST(lab2d_af testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_af.png 100 2 0 1 1)
-ADD_TEST(lab2d_bf testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_bf.png 100 2 1 1 1)
-ADD_TEST(lab2d_cf testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_cf.png 100 2 2 1 1)
-ADD_TEST(lab2d_df testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_df.png 100 2 3 1 1)
-ADD_TEST(lab2d_ef testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_ef.png 100 2 4 1 1)
+ADD_TEST(lab2d_af testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_af.tif 100 2 0 1 1)
+ADD_TEST(lab2d_bf testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_bf.tif 100 2 1 1 1)
+ADD_TEST(lab2d_cf testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_cf.tif 100 2 2 1 1)
+ADD_TEST(lab2d_df testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_df.tif 100 2 3 1 1)
+ADD_TEST(lab2d_ef testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png lab2d_ef.tif 100 2 4 1 1)
 
 
-ADD_TEST(comp2d_1f testEquiv lab2d_af.png lab2d_bf.png 2)
-ADD_TEST(comp2d_2f testEquiv lab2d_af.png lab2d_cf.png 2)
-ADD_TEST(comp2d_3f testEquiv lab2d_af.png lab2d_df.png 2)
-ADD_TEST(comp2d_4f testEquiv lab2d_af.png lab2d_ef.png 2)
+ADD_TEST(comp2d_1f testEquiv lab2d_af.tif lab2d_bf.tif 2)
+ADD_TEST(comp2d_2f testEquiv lab2d_af.tif lab2d_cf.tif 2)
+ADD_TEST(comp2d_3f testEquiv lab2d_af.tif lab2d_df.tif 2)
+ADD_TEST(comp2d_4f testEquiv lab2d_af.tif lab2d_ef.tif 2)
 
 
 ADD_TEST(lab3d_af testLabelling ${CMAKE_SOURCE_DIR}/images/ESCells.img lab3d_af.img 100 3 0 1 1)
@@ -105,10 +105,10 @@ ADD_TEST(comp3d_2f testEquiv lab3d_af.img lab3d_cf.img 3)
 ADD_TEST(comp3d_3f testEquiv lab3d_af.img lab3d_df.img 3)
 ADD_TEST(comp3d_4f testEquiv lab3d_af.img lab3d_ef.img 3)
 
-ADD_TEST(exceptionCheck testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png exceptionCheck.png 43 2 4 1 0)
+ADD_TEST(exceptionCheck testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png exceptionCheck.tif 43 2 4 1 0)
 
-ADD_TEST(regression2d   ${IMAGE_COMPARE} lab2d_e.png ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_e.png )
-ADD_TEST(regression2d_f ${IMAGE_COMPARE} lab2d_ef.png ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_ef.png )
+ADD_TEST(regression2d   ${IMAGE_COMPARE} lab2d_e.tif ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_e.tif )
+ADD_TEST(regression2d_f ${IMAGE_COMPARE} lab2d_ef.tif ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_ef.tif )
 ADD_TEST(regression3d   ${IMAGE_COMPARE} lab3d_e.img ${CMAKE_SOURCE_DIR}/ImageResults/lab3d_e.img )
 ADD_TEST(regression3d_f ${IMAGE_COMPARE} lab3d_ef.img ${CMAKE_SOURCE_DIR}/ImageResults/lab3d_ef.img )
 
