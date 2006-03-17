@@ -107,8 +107,8 @@ ADD_TEST(comp3d_4f testEquiv lab3d_af.img lab3d_ef.img 3)
 
 ADD_TEST(exceptionCheck testLabelling ${CMAKE_SOURCE_DIR}/images/BrainMidSagittalSlice.png exceptionCheck.nrrd 43 2 4 1 0)
 
-ADD_TEST(regression2d   ${IMAGE_COMPARE} lab2d_e.nrrd ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_e.png )
-ADD_TEST(regression2d_f ${IMAGE_COMPARE} lab2d_ef.nrrd ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_ef.png )
+ADD_TEST(regression2d   ${IMAGE_COMPARE} lab2d_e.nrrd ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_e.tif )
+ADD_TEST(regression2d_f ${IMAGE_COMPARE} lab2d_ef.nrrd ${CMAKE_SOURCE_DIR}/ImageResults/lab2d_ef.tif )
 ADD_TEST(regression3d   ${IMAGE_COMPARE} lab3d_e.img ${CMAKE_SOURCE_DIR}/ImageResults/lab3d_e.img )
 ADD_TEST(regression3d_f ${IMAGE_COMPARE} lab3d_ef.img ${CMAKE_SOURCE_DIR}/ImageResults/lab3d_ef.img )
 
