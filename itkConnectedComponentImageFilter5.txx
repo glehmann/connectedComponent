@@ -1,7 +1,7 @@
-#ifndef _itkConnectedComponentImageFilter4_txx
-#define _itkConnectedComponentImageFilter4_txx
+#ifndef _itkConnectedComponentImageFilter5_txx
+#define _itkConnectedComponentImageFilter5_txx
 
-#include "itkConnectedComponentImageFilter4.h"
+#include "itkConnectedComponentImageFilter5.h"
 #include "itkNumericTraits.h"
 // don't think we need the indexed version as we only compute the
 // index at the start of each run, but there isn't a choice
@@ -13,7 +13,7 @@ namespace itk
 {
 template< class TInputImage, class TOutputImage >
 void
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
 ::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
@@ -29,7 +29,7 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
 
 template <class TInputImage, class TOutputImage>
 void 
-ConnectedComponentImageFilter4<TInputImage, TOutputImage>
+ConnectedComponentImageFilter5<TInputImage, TOutputImage>
 ::EnlargeOutputRequestedRegion(DataObject *)
 {
   this->GetOutput()
@@ -39,7 +39,7 @@ ConnectedComponentImageFilter4<TInputImage, TOutputImage>
 
 template< class TInputImage, class TOutputImage >
 void
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
 ::GenerateData()
 {
   // create a line iterator
@@ -147,12 +147,11 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
       }
     }
   
-  unsigned long int totalLabs = CreateConsecutive();
-  m_ObjectCount = totalLabs;
+  long int totalLabs = CreateConsecutive();
   // check for overflow exception here
   if (totalLabs > static_cast<long int>(NumericTraits<OutputPixelType>::max())) 
     {
-    itkExceptionMacro( << "Number of objects greater than maximum of output pixel type " );
+
     }
   // create the output
   // A more complex version that is intended to minimize the number of
@@ -162,6 +161,8 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
   // rather than do lots of look ups. Don't know whether that will
   // make much difference in practice.
   // Note - this is unnecessary if AllocateOutputs initalizes to zero
+  if (m_SelectMax || (m_AreaLambda > 0))
+    computeAttributes(totalLabs, LineMap);
 
   FillOutput(LineMap, progress);
 
@@ -170,7 +171,7 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
 
 template< class TInputImage, class TOutputImage >
 void
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
 ::SetupLineOffsets(OffsetVec &LineOffsets)
 {
   // Create a neighborhood so that we can generate a table of offsets
@@ -269,7 +270,7 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
 }
 template< class TInputImage, class TOutputImage >
 void
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
 ::CompareLines(lineEncoding &current, const lineEncoding &Neighbour)
 {
   long offset = 0;
@@ -359,7 +360,7 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
 
 template< class TInputImage, class TOutputImage >
 void
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
 ::FillOutput(const LineMapType &LineMap,
 	     ProgressReporter &progress)
 {
@@ -375,7 +376,6 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
 
   ImageRegionIterator<OutputImageType> fstart=oit, fend=oit;
   fstart.GoToBegin();
-  fend.GoToEnd();
 
   for (LineIt = MapBegin; LineIt != MapEnd; ++LineIt)
     {
@@ -386,8 +386,30 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
 
     for (cIt = LineIt->second.begin();cIt != LineIt->second.end();++cIt)
       {
-      unsigned long Ilab = LookupSet( cIt->label);
+      long Ilab = LookupSet( cIt->label);
       OutputPixelType lab = m_Consecutive[Ilab];
+
+      if (m_SelectMax)
+	{
+	if (lab == m_BiggestObjectLab)
+	  {
+//	  std::cout << "Found biggest " << (int) m_OutValue << std::endl;
+	  lab = m_OutValue;
+	  }
+	else
+	  lab = NumericTraits<OutputPixelType>::Zero;
+	}
+      else
+	{
+	if (m_AreaLambda > 0)
+	  {
+	  if (m_Attributes[lab] > m_AreaLambda)
+	    lab = m_OutValue;
+	  else
+	    lab = NumericTraits<OutputPixelType>::Zero;
+	  }
+	}
+
       oit.SetIndex(cIt->where);
       // initialize the non labelled pixels
       for (; fstart != oit; ++fstart)
@@ -403,34 +425,71 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
       }
     progress.CompletedPixel();
     }
-  // fill the rest of the image with zeros
-  for (; fstart != fend; ++fstart)
-    {
-    fstart.Set(NumericTraits<OutputPixelType>::Zero );
-    }
+}
 
+template< class TInputImage, class TOutputImage >
+void
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
+::computeAttributes(const long int ObjCount, const LineMapType &LineMap)
+{
+  m_Attributes = AttributeType(ObjCount+1);
+  std::fill(m_Attributes.begin(), m_Attributes.end(), 0);
+  // we are going to compute areas for each object
+  typename LineMapType::const_iterator MapBegin, MapEnd, LineIt;
+  MapBegin = LineMap.begin();
+  MapEnd = LineMap.end(); 
+  LineIt = MapBegin;
+  for (LineIt = MapBegin; LineIt != MapEnd; ++LineIt)
+    {
+    typename lineEncoding::const_iterator cIt;
+    for (cIt = LineIt->second.begin();cIt != LineIt->second.end();++cIt)
+      {
+      long Ilab = LookupSet( cIt->label);
+      OutputPixelType lab = m_Consecutive[Ilab];
+      m_Attributes[lab] += cIt->length;
+      }
+    }
+  // find the index of the maximum
+  if (m_SelectMax)
+    {
+    long int where;
+    long int Area = 0;
+    for (long int i = 0; i<(ObjCount+1); i++)
+      {
+      long int A = m_Attributes[i];
+      //std::cout << (int)i << " " << A << std::endl;
+      if (A > Area)
+	{
+	Area = A;
+	where = i;
+	}
+      }
+
+    m_BiggestObjectLab = where;
+    }
+//  std::cout << "computeAttributes " << m_BiggestObjectLab <<std::endl;
 }
 
 // union find related functions
 template< class TInputImage, class TOutputImage >
 void
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
-::InsertSet(const unsigned long int label)
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
+::InsertSet(const long label)
 {
   m_UnionFind[label]=label;
 }
 
 template< class TInputImage, class TOutputImage >
-unsigned long int
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
+long int
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
 ::CreateConsecutive()
 {
   m_Consecutive = UnionFindType(m_UnionFind.size());
   m_Consecutive[0] = 0;
-  unsigned long int CLab = 0;
-  for (unsigned long int I = 1; I < m_UnionFind.size(); I++)
+  long int CLab = 0;
+  for (long int I = 1; I < m_UnionFind.size(); I++)
     {
-    unsigned long int L = m_UnionFind[I];
+    long int L = m_UnionFind[I];
     if (L == I) 
       {
       ++CLab;
@@ -441,9 +500,9 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
 }
 
 template< class TInputImage, class TOutputImage >
-unsigned long int
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
-::LookupSet(const unsigned long int label)
+long int
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
+::LookupSet(const long label)
 {
   // recursively set the equivalence if necessary
   if (label != m_UnionFind[label])
@@ -455,11 +514,11 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
 
 template< class TInputImage, class TOutputImage >
 void
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
-::LinkLabels(const unsigned long int lab1, const unsigned long int lab2)
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
+::LinkLabels(const long int lab1, const long int lab2)
 {
-  unsigned long E1 = this->LookupSet(lab1);
-  unsigned long E2 = this->LookupSet(lab2);
+  long E1 = this->LookupSet(lab1);
+  long E2 = this->LookupSet(lab2);
 
   if (E1 < E2)
     {
@@ -474,7 +533,7 @@ ConnectedComponentImageFilter4< TInputImage, TOutputImage >
 
 template< class TInputImage, class TOutputImage >
 void
-ConnectedComponentImageFilter4< TInputImage, TOutputImage >
+ConnectedComponentImageFilter5< TInputImage, TOutputImage >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);

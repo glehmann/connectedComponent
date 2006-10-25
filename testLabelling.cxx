@@ -143,6 +143,7 @@ void ThreshAndLabel(std::string infile, std::string outfile, int thresh,
       ltime.Stop();
       labeller4->Modified();
       }
+    std::cout << "Object count = " << labeller4->GetObjectCount() << std::endl;
     writer->SetInput(labeller4->GetOutput());
     break;
   default:

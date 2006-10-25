@@ -1,10 +1,9 @@
 
-#ifndef __itkConnectedComponentImageFilter4_h
-#define __itkConnectedComponentImageFilter4_h
+#ifndef __itkConnectedComponentImageFilter5_h
+#define __itkConnectedComponentImageFilter5_h
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
-#include "itkConceptChecking.h"
 #include <vector>
 #include <map>
 #include "itkProgressReporter.h"
@@ -13,32 +12,31 @@ namespace itk
 {
 
 /**
- * \class ConnectedComponentImageFilter4
+ * \class ConnectedComponentImageFilter
  * \brief Label the objects in a binary image
  *
- * ConnectedComponentImageFilter4 labels the objects in a binary image.
+ * ConnectedComponentImageFilter labels the objects in a binary image.
  * Each distinct object is assigned a unique label. The filter experiments
  * with some improvements to the existing implementation, and is based on
- * run length encoding along raster lines.
- * The final object labels start with 1 and are consecutive. Objects
- * that are reached earlier by a raster order scan have a lower
- * label. This is different to the behaviour of the original connected
- * component image filter which did not produce consecutive labels or
- * impose any particular ordering.
- *
+ * run length encoding along lines
+ * The final object labels are in no particular order (and some object
+ * labels may not be used on the final objects).  You can reorder the
+ * labels such that object labels are consecutive and sorted based on
+ * object size by passing the output of this filter to a
+ * RelabelComponentImageFilter. 
  *
  * \sa ImageToImageFilter
  */
 
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT ConnectedComponentImageFilter4 : 
+class ITK_EXPORT ConnectedComponentImageFilter5 : 
     public ImageToImageFilter< TInputImage, TOutputImage > 
 {
 public:
   /**
    * Standard "Self" & Superclass typedef.
    */
-  typedef ConnectedComponentImageFilter4 Self;
+  typedef ConnectedComponentImageFilter5 Self;
   typedef ImageToImageFilter< TInputImage, TOutputImage > Superclass;
 
   /**
@@ -54,10 +52,8 @@ public:
   typedef typename TOutputImage::InternalPixelType OutputInternalPixelType;
   typedef typename TInputImage::PixelType InputPixelType;
   typedef typename TInputImage::InternalPixelType InputInternalPixelType;
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
+  itkStaticConstMacro(ImageDimension, unsigned int,
                       TOutputImage::ImageDimension);
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
   
   /**
    * Image typedef support
@@ -78,7 +74,7 @@ public:
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(ConnectedComponentImageFilter4, ImageToImageFilter);
+  itkTypeMacro(ConnectedComponentImageFilter5, ImageToImageFilter);
   
   /**
    * Method for creation through the object factory.
@@ -96,21 +92,30 @@ public:
   itkBooleanMacro(FullyConnected);
   
   // only set after completion
-  itkGetConstReferenceMacro(ObjectCount, unsigned long);
+  itkGetConstReferenceMacro(ObjectCount, long);
 
-  // Concept checking -- input and output dimensions must be the same
-  itkConceptMacro(SameDimension,
-		  (Concept::SameDimension<itkGetStaticConstMacro(InputImageDimension),itkGetStaticConstMacro(OutputImageDimension)>));
+  // experimental
+  itkSetMacro(AreaLambda, long);
+  itkGetMacro(AreaLambda, long);
 
+  itkSetMacro(OutValue, OutputPixelType);
+  itkGetMacro(OutValue, OutputPixelType);
+
+  itkSetMacro(SelectMax, bool);
+  itkGetMacro(SelectMax, bool);
+  
 
 protected:
-  ConnectedComponentImageFilter4() 
+  ConnectedComponentImageFilter5() 
     {
     m_FullyConnected = false;
     m_ObjectCount = -1;
+    m_AreaLambda = -1;
+    m_SelectMax = false;
+    m_OutValue = 1;
     }
-  virtual ~ConnectedComponentImageFilter4() {}
-  ConnectedComponentImageFilter4(const Self&) {}
+  virtual ~ConnectedComponentImageFilter5() {}
+  ConnectedComponentImageFilter5(const Self&) {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /**
@@ -118,12 +123,12 @@ protected:
    */
   void GenerateData();
 
-  /** ConnectedComponentImageFilter4 needs the entire input. Therefore
+  /** ConnectedComponentImageFilter needs the entire input. Therefore
    * it must provide an implementation GenerateInputRequestedRegion().
    * \sa ProcessObject::GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();
 
-  /** ConnectedComponentImageFilter4 will produce all of the output.
+  /** ConnectedComponentImageFilter will produce all of the output.
    * Therefore it must provide an implementation of
    * EnlargeOutputRequestedRegion().
    * \sa ProcessObject::EnlargeOutputRequestedRegion() */
@@ -132,7 +137,11 @@ protected:
 private:
 
   bool m_FullyConnected;
-  unsigned long m_ObjectCount;
+  long m_ObjectCount;
+  bool m_SelectMax;
+  long m_AreaLambda;
+  OutputPixelType m_OutValue, m_BiggestObjectLab;
+
   // some additional types
   typedef typename TOutputImage::RegionType::SizeType OutSizeType;
 
@@ -142,7 +151,7 @@ private:
     public:
       long int length;  // run length information - may be a more type safe way of doing this
       typename InputImageType::IndexType where;  // Index of the start of the run
-      unsigned long int label; // the initial label of the run
+      long int label; // the initial label of the run
     };
 
   typedef std::vector<runLength> lineEncoding;
@@ -153,31 +162,37 @@ private:
   typedef std::vector<long> OffsetVec;
 
   // the types to support union-find operations
-  typedef std::vector<unsigned long int> UnionFindType;
+  typedef std::vector<long int> UnionFindType;
   UnionFindType m_UnionFind;
   UnionFindType m_Consecutive;
   // functions to support union-find operations
-  void InitUnion(const unsigned long int size) 
+  void InitUnion(const long int size) 
   {
     m_UnionFind = UnionFindType(size + 1);
   }
-  void InsertSet(const unsigned long int label);
-  unsigned long int LookupSet(const unsigned long int label);
-  void LinkLabels(const unsigned long int lab1, const unsigned long int lab2);
-  unsigned long int CreateConsecutive();
+  void InsertSet(const long int label);
+  long int LookupSet(const long int label);
+  void LinkLabels(const long int lab1, const long int lab2);
+  long int CreateConsecutive();
   //////////////////
+
+  typedef std::vector<long> AttributeType;
+  AttributeType m_Attributes;
+
   void CompareLines(lineEncoding &current, const lineEncoding &Neighbour);
 
   void FillOutput(const LineMapType &LineMap,
 		  ProgressReporter &progress);
 
   void SetupLineOffsets(OffsetVec &LineOffsets);
+
+  void computeAttributes(const long int ObjCount, const LineMapType &LineMap);
 };
   
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkConnectedComponentImageFilter4.txx"
+#include "itkConnectedComponentImageFilter5.txx"
 #endif
 
 #endif
